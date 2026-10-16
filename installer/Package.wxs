@@ -1,0 +1,75 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <!--
+    Per-user install: no admin rights, installs to %LOCALAPPDATA%\Programs\AI Meter.
+    Public properties (set on the msiexec command line):
+      AUTOSTART=1|0   start AI Meter at Windows sign-in (default 1, or the user's last choice on upgrade)
+      LAUNCHAPP=1|0   start AI Meter when setup finishes (default 1)
+  -->
+  <Package Name="AI Meter"
+           Manufacturer="ViviScape"
+           Version="$(var.Version)"
+           UpgradeCode="{6B0F2B1E-2D7C-4D35-9C1A-8E7A3B6F4C21}"
+           Scope="perUser"
+           Compressed="yes"
+           Language="1033">
+
+    <SummaryInformation Description="AI Meter — Claude and Codex usage widget" />
+
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="A newer version of AI Meter is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="AppIcon.ico" SourceFile="$(var.AssetsDir)AIMeter.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+    <Property Id="ARPNOREPAIR" Value="1" />
+
+    <!-- On upgrade, keep the user's own start-at-sign-in choice (written by the app). -->
+    <Property Id="AUTOSTART" Value="1" Secure="yes">
+      <RegistrySearch Id="AutoStartPref" Root="HKCU" Key="Software\ViviScape\AIMeter" Name="AutoStart" Type="raw" />
+    </Property>
+    <Property Id="LAUNCHAPP" Value="1" Secure="yes" />
+
+    <!-- Close a running copy before files are replaced or removed. -->
+    <util:CloseApplication Id="CloseAIMeter" Target="AIMeter.exe" CloseMessage="yes"
+                           RebootPrompt="no" TerminateProcess="0" Timeout="5" />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsDir" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="AI Meter" />
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+
+    <Feature Id="Main" Title="AI Meter">
+      <Component Id="MainExe" Directory="INSTALLFOLDER" Guid="{A3E5C0D2-7B41-4F8E-9D26-5C1B8E4F7A90}">
+        <File Id="AIMeterExe" Source="$(var.PublishDir)AIMeter.exe" KeyPath="no" />
+        <!-- Per-user components need an HKCU key path. -->
+        <RegistryValue Root="HKCU" Key="Software\ViviScape\AIMeter" Name="InstallDir" Type="string"
+                       Value="[INSTALLFOLDER]" KeyPath="yes" />
+        <RemoveFolder Id="RemoveInstallFolder" Directory="INSTALLFOLDER" On="uninstall" />
+        <RemoveFolder Id="RemoveProgramsDir" Directory="ProgramsDir" On="uninstall" />
+      </Component>
+
+      <Component Id="StartMenuShortcut" Directory="ProgramMenuFolder">
+        <Shortcut Id="AppShortcut" Name="AI Meter" Description="Claude and Codex usage widget"
+                  Target="[INSTALLFOLDER]AIMeter.exe" WorkingDirectory="INSTALLFOLDER" Icon="AppIcon.ico" />
+        <RegistryValue Root="HKCU" Key="Software\ViviScape\AIMeter" Name="StartMenuShortcut" Type="integer"
+                       Value="1" KeyPath="yes" />
+      </Component>
+
+      <Component Id="RunAtSignIn" Directory="INSTALLFOLDER" Condition="AUTOSTART = &quot;1&quot;">
+        <RegistryValue Root="HKCU" Key="Software\Microsoft\Windows\CurrentVersion\Run" Name="AIMeter"
+                       Type="string" Value="&quot;[INSTALLFOLDER]AIMeter.exe&quot;" KeyPath="yes" />
+      </Component>
+    </Feature>
+
+    <CustomAction Id="LaunchApp" Directory="INSTALLFOLDER" ExeCommand="&quot;[INSTALLFOLDER]AIMeter.exe&quot;"
+                  Execute="immediate" Return="asyncNoWait" Impersonate="yes" />
+    <InstallExecuteSequence>
+      <Custom Action="LaunchApp" After="InstallFinalize" Condition="NOT REMOVE AND LAUNCHAPP = &quot;1&quot;" />
+    </InstallExecuteSequence>
+  </Package>
+</Wix>

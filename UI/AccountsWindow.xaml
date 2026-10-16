@@ -1,0 +1,71 @@
+<Window x:Class="AIMeter.UI.AccountsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AI Meter — Accounts &amp; settings" Width="560" SizeToContent="Height"
+        ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="13" Background="#F6F6F8">
+    <StackPanel Margin="24,20,24,20">
+        <TextBlock Text="Accounts" FontSize="18" FontWeight="SemiBold" />
+        <TextBlock TextWrapping="Wrap" Foreground="#5A5A66" Margin="0,4,0,12"
+                   Text="Sign in to each Claude or ChatGPT (Codex) account you want to watch. You can add several of each. Sign-ins are encrypted for your Windows user and never leave this PC except to talk to Anthropic and OpenAI." />
+
+        <Border Background="White" BorderBrush="#E2E2E8" BorderThickness="1" CornerRadius="8">
+            <StackPanel>
+                <TextBlock x:Name="NoAccountsText" Text="No accounts yet." Foreground="#80808A" Margin="14,12" />
+                <ItemsControl x:Name="AccountsList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="#EDEDF1" BorderThickness="0,0,0,1" Padding="14,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Width="9" Height="9" Fill="{Binding AccentBrush}" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBox Text="{Binding Label, UpdateSourceTrigger=PropertyChanged}" FontWeight="SemiBold" BorderThickness="0,0,0,1"
+                                                 BorderBrush="#D0D0D8" Background="Transparent" Padding="0,1" ToolTip="Rename this account"
+                                                 LostFocus="Label_LostFocus" />
+                                        <TextBlock Text="{Binding ManageSubtitle}" FontSize="11.5" Foreground="#6A6A75" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Content="Remove" Margin="12,0,0,0" Padding="10,3" VerticalAlignment="Center"
+                                            Tag="{Binding}" Click="Remove_Click" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <TextBlock Text="Add an account" FontWeight="SemiBold" Margin="0,16,0,6" />
+        <WrapPanel x:Name="AddButtons">
+            <Button Content="Sign in to Claude…" Padding="12,5" Margin="0,0,8,8" Click="SignInClaude_Click" />
+            <Button Content="Sign in to ChatGPT (Codex)…" Padding="12,5" Margin="0,0,8,8" Click="SignInCodex_Click" />
+            <Button Content="Use Claude Code's sign-in" Padding="12,5" Margin="0,0,8,8" Click="LinkClaude_Click"
+                    ToolTip="Reads ~/.claude/.credentials.json each refresh. Nothing to sign in, but it stops working if Claude Code's sign-in lapses." />
+            <Button Content="Use Codex CLI's sign-in" Padding="12,5" Margin="0,0,8,8" Click="LinkCodex_Click"
+                    ToolTip="Reads ~/.codex/auth.json each refresh. Nothing to sign in, but it stops working if the Codex CLI's sign-in lapses." />
+        </WrapPanel>
+
+        <Border x:Name="StatusPanel" Visibility="Collapsed" Background="#EEF3FF" BorderBrush="#C9D8FF" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,4,0,0">
+            <Grid>
+                <TextBlock x:Name="StatusText" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,90,0" />
+                <Button x:Name="CancelButton" Content="Cancel" HorizontalAlignment="Right" Padding="10,3" Click="Cancel_Click" />
+            </Grid>
+        </Border>
+
+        <Separator Margin="0,18,0,14" />
+
+        <TextBlock Text="Settings" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10" />
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Refresh every" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <ComboBox x:Name="RefreshCombo" Width="120" SelectionChanged="RefreshCombo_SelectionChanged" />
+        </StackPanel>
+        <CheckBox x:Name="TopmostCheck" Content="Keep the widget on top of other windows" Margin="0,0,0,8" Click="Setting_Click" />
+        <CheckBox x:Name="StartupCheck" Content="Start AI Meter when I sign in to Windows" Click="Startup_Click" />
+
+        <Button Content="Close" HorizontalAlignment="Right" Padding="20,5" Margin="0,18,0,0" IsCancel="True" Click="Close_Click" />
+    </StackPanel>
+</Window>
