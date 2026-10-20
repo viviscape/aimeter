@@ -61,20 +61,36 @@ public sealed class MeterViewModel : Observable
         }
     }
 
-    public void Tick() => Raise(nameof(SubText));
+    // Detail view
+    public string UsedText => $"{_m.PercentUsed:0.#}%";
+    public string LeftText => $"{Math.Max(0, 100 - _m.PercentUsed):0.#}%";
+    public string? Detail => _m.Detail;
+    public Visibility DetailVisibility => string.IsNullOrEmpty(_m.Detail) ? Visibility.Collapsed : Visibility.Visible;
+    public Visibility ResetVisibility => _m.ResetsAt is null ? Visibility.Collapsed : Visibility.Visible;
+    public string ResetAtText => _m.ResetsAt?.ToLocalTime().ToString("dddd, MMM d 'at' h:mm tt", En) ?? "";
+    public string ResetInText => _m.ResetsAt is { } r ? FormatRelative(r - DateTimeOffset.Now) : "";
+
+    public void Tick()
+    {
+        Raise(nameof(SubText));
+        Raise(nameof(ResetInText));
+    }
+
+    private static string FormatRelative(TimeSpan span)
+        => span <= TimeSpan.Zero ? "now"
+         : span.TotalDays >= 1 ? $"in {(int)span.TotalDays}d {span.Hours}h"
+         : span.TotalHours >= 1 ? $"in {(int)span.TotalHours}h {span.Minutes}m"
+         : $"in {Math.Max(1, (int)Math.Ceiling(span.TotalMinutes))}m";
 
     internal static string FormatReset(DateTimeOffset at)
     {
         var local = at.ToLocalTime();
         var span = at - DateTimeOffset.Now;
         if (span <= TimeSpan.Zero) return "now";
-        var rel = span.TotalDays >= 1 ? $"{(int)span.TotalDays}d {span.Hours}h"
-                : span.TotalHours >= 1 ? $"{(int)span.TotalHours}h {span.Minutes}m"
-                : $"{Math.Max(1, (int)Math.Ceiling(span.TotalMinutes))}m";
         var abs = local.Date == DateTime.Today ? local.ToString("h:mm tt", En)
                 : local.Date == DateTime.Today.AddDays(1) ? "tomorrow " + local.ToString("h:mm tt", En)
                 : local.ToString("ddd h:mm tt", En);
-        return $"in {rel} ({abs})";
+        return $"{FormatRelative(span)} ({abs})";
     }
 }
 
@@ -128,6 +144,20 @@ public sealed class AccountViewModel : Observable
     public Visibility NotesVisibility => string.IsNullOrEmpty(Notes) ? Visibility.Collapsed : Visibility.Visible;
     public Visibility ErrorVisibility => string.IsNullOrEmpty(Error) ? Visibility.Collapsed : Visibility.Visible;
     public Visibility SignInVisibility => NeedsSignIn && Account.Source == AccountSource.OAuth ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility NoMetersVisibility => Meters.Count == 0 && Error is null ? Visibility.Visible : Visibility.Collapsed;
+
+    public string UpdatedText => IsLoading ? "Updating…"
+        : UpdatedAt is { } t ? t.ToString("h:mm tt", CultureInfo.GetCultureInfo("en-US"))
+        : "Not yet";
+
+    private bool _isDragging;
+    /// <summary>True while this tile is being dragged to a new position in the widget.</summary>
+    public bool IsDragging
+    {
+        get => _isDragging;
+        set { if (_isDragging != value) { _isDragging = value; Raise(); Raise(nameof(TileOpacity)); } }
+    }
+    public double TileOpacity => IsDragging ? 0.45 : 1.0;
 
     /// <summary>Smallest remaining percentage across meters, for the tray tooltip.</summary>
     public double? LowestRemaining => Meters.Count == 0 ? null : Meters.Min(m => Math.Max(0, 100 - m.PercentUsed));
@@ -137,6 +167,7 @@ public sealed class AccountViewModel : Observable
         IsLoading = loading;
         Raise(nameof(IsLoading));
         Raise(nameof(Subtitle));
+        Raise(nameof(UpdatedText));
     }
 
     public void Apply(UsageSnapshot s)

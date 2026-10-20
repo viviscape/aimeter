@@ -74,6 +74,8 @@ Tips:
 ## Widget controls
 
 - Drag the header to move the widget. It remembers where you put it.
+- Click an account's tile to open its detail view: every usage window with exact used/left percentages, the full reset date and time with a live countdown, spend or credit details, plan, status, and when it was last checked. It has its own Refresh button.
+- Drag a tile up or down to reorder the accounts, or right-click a tile → Move up / Move down. The order is saved and also used in Accounts & settings.
 - ⟳ refreshes now, ⚙ opens accounts & settings, — hides the widget. Click the tray icon to bring it back.
 - Right-click the widget or the tray icon for more options: always on top, refresh, exit.
 - Settings: how often to refresh (1 minute to 1 hour, default 5 minutes), keep on top, and start with Windows (a per-user `HKCU\…\Run` entry, so no admin rights are needed).
@@ -97,6 +99,6 @@ Because these endpoints are undocumented, they can change without notice. The pa
 
 ```
 Core/   provider clients (ClaudeProvider, CodexProvider), OAuth loopback + PKCE, DPAPI store
-UI/     WPF widget (MainWindow), accounts/settings window, view models, tray icon art
+UI/     WPF widget (MainWindow), per-account detail view, accounts/settings window, view models, tray icon art
 App.*   app lifetime, tray icon, refresh timer, single-instance handling
 ```

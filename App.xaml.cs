@@ -26,6 +26,7 @@ public partial class App : Application
     private System.Drawing.Icon? _icon;
     private MainWindow? _widget;
     private AccountsWindow? _accountsWindow;
+    private readonly System.Collections.Generic.Dictionary<AccountViewModel, DetailWindow> _detailWindows = new();
     private readonly DispatcherTimer _refreshTimer = new();
     private readonly DispatcherTimer _tickTimer = new() { Interval = TimeSpan.FromSeconds(30) };
     private bool _refreshing;
@@ -129,6 +130,38 @@ public partial class App : Application
         _accountsWindow.Activate();
     }
 
+    public void ShowDetails(AccountViewModel vm)
+    {
+        if (!_detailWindows.TryGetValue(vm, out var window))
+        {
+            window = new DetailWindow(this, vm);
+            window.Closed += (_, _) => _detailWindows.Remove(vm);
+            _detailWindows[vm] = window;
+            window.Show();
+        }
+        if (window.WindowState == WindowState.Minimized) window.WindowState = WindowState.Normal;
+        window.Activate();
+    }
+
+    /// <summary>Moves an account to a new position in the widget and remembers the order.</summary>
+    public void MoveAccount(AccountViewModel vm, int newIndex)
+    {
+        var oldIndex = Accounts.IndexOf(vm);
+        newIndex = Math.Clamp(newIndex, 0, Accounts.Count - 1);
+        if (oldIndex < 0 || oldIndex == newIndex) return;
+        Accounts.Move(oldIndex, newIndex);
+    }
+
+    /// <summary>Writes the widget's current tile order to disk.</summary>
+    public void SaveAccountOrder()
+    {
+        var ordered = Accounts.Select(v => v.Account).ToList();
+        if (ordered.SequenceEqual(Store.Accounts)) return;
+        Store.Accounts.Clear();
+        Store.Accounts.AddRange(ordered);
+        SaveStore();
+    }
+
     public async Task RefreshAllAsync()
     {
         if (_refreshing) return;
@@ -205,7 +238,7 @@ public partial class App : Application
         _ = RefreshAndUpdateTrayAsync(vm);
     }
 
-    private async Task RefreshAndUpdateTrayAsync(AccountViewModel vm)
+    public async Task RefreshAndUpdateTrayAsync(AccountViewModel vm)
     {
         await RefreshOneAsync(vm);
         UpdateTrayText();
@@ -214,6 +247,7 @@ public partial class App : Application
 
     public void RemoveAccount(AccountViewModel vm)
     {
+        if (_detailWindows.TryGetValue(vm, out var detail)) detail.Close();
         Store.Accounts.Remove(vm.Account);
         Accounts.Remove(vm);
         SaveStore();
