@@ -24,9 +24,9 @@ Download the latest MSI from [Releases](https://github.com/viviscape/aimeter/rel
 - **Silent / Intune / scripted installs:** deploy in the *user* context, e.g.
 
   ```powershell
-  msiexec /i AIMeter-1.0.0-x64.msi /qn                 # silent; starts the widget
-  msiexec /i AIMeter-1.0.0-x64.msi /qn LAUNCHAPP=0 AUTOSTART=0
-  msiexec /x AIMeter-1.0.0-x64.msi /qn                 # silent uninstall
+  msiexec /i AIMeter-1.1.0-x64.msi /qn                 # silent; starts the widget
+  msiexec /i AIMeter-1.1.0-x64.msi /qn LAUNCHAPP=0 AUTOSTART=0
+  msiexec /x AIMeter-1.1.0-x64.msi /qn                 # silent uninstall
   ```
 
   `AUTOSTART` sets start-at-sign-in (default on). On upgrades, each person's own choice from the settings window is kept.
