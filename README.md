@@ -14,7 +14,7 @@ Bars turn amber at 70% used and red at 90%. Hovering over the tray icon shows th
 
 ## Installing (for your team)
 
-Give people `artifacts\AIMeter-<version>-x64.msi`. They double-click it and it installs. No admin rights or .NET install needed.
+Download the latest MSI from [Releases](https://github.com/viviscape/aimeter/releases/latest), or give people `artifacts\AIMeter-<version>-x64.msi` from a local build. They double-click it and it installs. No admin rights or .NET install needed.
 
 - Installs for the current user only, to `%LOCALAPPDATA%\Programs\AI Meter`. Adds a Start menu shortcut, turns on start-at-sign-in, and opens the widget when setup finishes.
 - Each person then signs in to their own accounts under ⚙ → Accounts & settings.
